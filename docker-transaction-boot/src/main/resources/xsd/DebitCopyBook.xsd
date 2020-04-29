@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:tns="http://debit.com/copybook/trans"
+	elementFormDefault="qualified"
+	targetNamespace="http://debit.com/copybook/trans">
+	<element name="DebitClientTrans" type="tns:DebitClientTrans" />
+
+	<complexType name="DebitClientTrans">
+		<sequence>
+			<element name="DebitClient" type="tns:DebitClient" />
+			<element name="order" type="tns:order"/>
+		</sequence>
+	</complexType>
+	<complexType name="DebitClient">
+		<sequence>
+			<element name="transactionKey">
+				<simpleType>
+					<restriction base="string">
+						<maxLength value="20" />
+					</restriction>
+				</simpleType>
+			</element>
+			<element name="transactionType">
+				<simpleType>
+					<restriction base="string">
+						<maxLength value="10" />
+					</restriction>
+				</simpleType>
+			</element>
+			<element name="accountType">
+				<simpleType>
+					<restriction base="string">
+						<maxLength value="10" />
+					</restriction>
+				</simpleType>
+			</element>
+			<element name="routingNumber">
+				<simpleType>
+					<restriction base="string">
+						<maxLength value="8" />
+					</restriction>
+				</simpleType>
+			</element>
+			<element name="accountNumber">
+				<simpleType>
+					<restriction base="string">
+						<maxLength value="16" />
+					</restriction>
+				</simpleType>
+			</element>
+			<element name="nameOnAccount">
+				<simpleType>
+					<restriction base="string">
+						<maxLength value="20" />
+					</restriction>
+				</simpleType>
+			</element>
+			
+				
+			<element name="firstname">
+				<simpleType>
+					<restriction base="string">
+						<maxLength value="250" />
+					</restriction>
+				</simpleType>
+			</element>
+			<element name="lastName">
+				<simpleType>
+					<restriction base="string">
+						<maxLength value="250" />
+					</restriction>
+				</simpleType>
+			</element>
+		</sequence>
+	</complexType>
+	<complexType name="order">
+					<sequence>
+						<element name="invoiceNumber">
+							<simpleType>
+								<restriction base="string">
+									<maxLength value="9" />
+								</restriction>
+							</simpleType>
+						</element>
+						<element name="description">
+							<simpleType>
+								<restriction base="string">
+									<maxLength value="200" />
+								</restriction>
+							</simpleType>
+						</element>
+					</sequence>
+				</complexType>
+</schema>

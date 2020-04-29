@@ -1,0 +1,41 @@
+<beanio xmlns="http://www.beanio.org/2012/03"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.beanio.org/2012/03 http://www.beanio.org/2012/03/mapping.xsd">
+	<stream name="debit" format="fixedlength" >
+		<parser>
+        	<property name="recordTerminator" value="\r\n" />
+    	</parser>
+		<record name="requestData"
+			class="com.debit.copybook.trans.DebitClientTrans" >
+			<segment name="debitClient"
+				class="com.debit.copybook.trans.DebitClient">
+			<field name="transactionKey" type="string" length="20"
+				position="0" />
+				
+			<field name="transactionType" type="string"
+				length="20" position="21" />
+		    <field name="firstname" type="string" length="250" position="42" />
+			<field name="lastName" type="string" length="250"
+				position="293" />
+			<field name="accountType" type="string"
+				length="10" position="544" />
+			<field name="routingNumber" type="string" length="8"
+				position="555" />
+			<field name="accountNumber" type="string" length="16"
+				position="564" />
+			<field name="nameOnAccount" type="string" length="20"
+				position="581" />
+				</segment>
+			<segment name="order"
+				class="com.debit.copybook.trans.Order">
+				<field name="invoiceNumber" type="string" length="9"
+					position="602" />
+				<field name="description" type="string" length="200"
+					position="612" />
+			</segment>
+
+			
+		</record>
+	
+	</stream>
+</beanio>

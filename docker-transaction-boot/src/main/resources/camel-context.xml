@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:cxf="http://camel.apache.org/schema/cxf"
+    xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd      http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd     http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd      http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
+    <cxf:rsServer address="${api.url}" id="restServerId">
+        <cxf:serviceBeans>
+            <bean class="com.docker.RestResource"/>
+        </cxf:serviceBeans>
+        <cxf:inInterceptors>
+            <bean class="org.apache.cxf.interceptor.LoggingInInterceptor"/>
+        </cxf:inInterceptors>
+        <cxf:outInterceptors>
+            <bean class="org.apache.cxf.interceptor.LoggingOutInterceptor"/>
+        </cxf:outInterceptors>
+        <cxf:providers>
+            <bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+        </cxf:providers>
+    </cxf:rsServer>
+    <bean class="org.apache.camel.component.jms.JmsComponent" id="wmq">
+        <property name="connectionFactory" ref="activemqConnectionFactory"/>
+    </bean>
+    <bean class="org.apache.activemq.ActiveMQConnectionFactory" id="activemqConnectionFactory">
+        <property name="brokerURL" value="${activemq.topic.url}"/>
+        <property name="userName" value="${activemq.username}"/>
+        <property name="password" value="${activemq.password}"/>
+    </bean>
+    <bean
+        class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dataSource">
+        <property name="driverClassName" value="org.postgresql.Driver"/>
+        <property name="url" value="${postgres.url}"/>
+        <property name="username" value="${postgres.username}"/>
+        <property name="password" value="${postgres.password}"/>
+    </bean>
+    <bean class="org.apache.camel.component.sql.SqlComponent" id="postgresql">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <bean
+        class="com.docker.poc.application.DebitCardBatchTransactionProcessor" id="debitBatchSqlStatementProcessor"/>
+    <bean class="com.docker.poc.application.CopyBookMapper" id="copyBookMapper"/>
+    <!-- Bean declaration -->
+    <bean class="com.docker.poc.application.DebitCardTransProcessor" id="sqlStatementProcessor"/>
+    <bean class="com.docker.poc.application.EmailProcessor" id="emailProcessor"/>
+    <camelContext id="DEBImqTransaction-contextId" trace="true" xmlns="http://camel.apache.org/schema/spring">
+        <propertyPlaceholder id="myPropertyPlaceholder">
+            <propertiesLocation optional="false"
+                path="C:\Users\c5099077\eclipse-workspace\docker-transaction-boot\src\main\resources\application.properties" resolver="file"/>
+        </propertyPlaceholder>
+        <jmxAgent disabled="true" id="jmxAgent"/>
+        <endpoint id="debitRequestQueue" uri="wmq:debitqueue"/>
+        <endpoint id="quartzEndpointId" uri="quartz2://docker/triggerbatch?cron=${cron.statement}"/>
+        <endpoint id="emailAddress" uri="${smtp.url}"/>
+        <dataFormats>
+            <jaxb contextPath="generated" id="jaxb" prettyPrint="true"/>
+            <beanio id="beanioID" mapping="beanio-mapping.xml" streamName="debit"/>
+        </dataFormats>
+        <route id="DebitActivemQTransactionRouteId">
+            <from id="mqFromConsumerID" uri="debitRequestQueue"/>
+            <setProperty id="_setProperty1" propertyName="ORIGINAL_REQUEST">
+                <simple>${body}</simple>
+            </setProperty>
+            <to id="_to1" uri="file:backup?fileName=/${date:now:yyyyMMdd}/historyReq/Debit_Trns${date:now:yyyy.MM.dd_HH.mm.ss.SSSSS_z}.xml"/>
+            <unmarshal id="_unmarshal1">
+                <custom ref="jaxb"/>
+            </unmarshal>
+            <setProperty id="_setProperty2" propertyName="REQUEST_FOR_PROVIDER">
+                <simple>${body}</simple>
+            </setProperty>
+            <transform id="_transform1">
+                <method method="process" ref="sqlStatementProcessor"/>
+            </transform>
+            <to id="_to2" uri="postgresql:{{sql.transaction}}"/>
+            <bean id="_bean2" method="setSubject" ref="emailProcessor"/>
+           <!--  <to id="_to5" uri="seda:sendEmail"/> -->
+            <onException id="_onException1">
+                <exception>java.lang.Exception</exception>
+                <log id="_log2" loggingLevel="ERROR" message="Exception.. ${exception}"/>
+            </onException>
+        </route>
+        <route id="EmailRouteId" trace="true">
+            <from id="_from2" uri="seda:sendEmail"/>
+            <process id="_process1" ref="emailProcessor"/>
+            <setHeader headerName="To" id="_setHeader1">
+                <constant>{{smtp.to}}</constant>
+            </setHeader>
+            <setHeader headerName="From" id="_setHeader2">
+                <constant>{{smtp.from}}</constant>
+            </setHeader>
+            <to id="_to4" uri="emailAddress"/>
+            <onException id="_onException2">
+                <exception>java.lang.Exception</exception>
+                <log id="_log1" loggingLevel="ERROR" message="Exception while sending email.. ${exception}"/>
+            </onException>
+        </route>
+        <route id="restRouteId">
+            <from id="batchConsumerId" uri="cxfrs:bean:restServerId?synchronous=false&amp;exchangePattern=InOnly"/>
+            <inOnly id="_to11" uri="seda:debitBatch"/>
+        </route>
+        <route id="schedularRouteId">
+            <from id="_from1" uri="quartzEndpointId"/>
+            <to id="_to3" uri="seda:debitBatch"/>
+        </route>
+        <route autoStartup="true" id="debitBatchRouteId"
+            shutdownRunningTask="CompleteAllTasks" streamCache="true">
+            <from id="_from3" uri="seda:debitBatch"/>
+            <bean id="setDebitStartId" method="setDebitBatchStartTime" ref="debitBatchSqlStatementProcessor"/>
+            <setProperty id="_setProperty3" propertyName="IS_BATCH_CONTINUE">
+                <simple resultType="java.lang.String">true</simple>
+            </setProperty>
+            <loop doWhile="true" id="_loop1">
+                <simple>${exchangeProperty[IS_BATCH_CONTINUE]} == 'true'</simple>
+                <to id="_to6" uri="postgresql:{{sql.select.transaction}}?outputType=SelectList"/>
+                <process id="_process2" ref="debitBatchSqlStatementProcessor"/>
+                <bean id="setDebitBatchCOntinue"
+                    method="isDebitBatchContinue" ref="debitBatchSqlStatementProcessor"/>
+                <split id="splitterId">
+                    <simple>${body}</simple>
+                    <doTry id="_doTry1">
+                        <unmarshal id="_unmarshal2">
+                            <custom ref="jaxb"/>
+                        </unmarshal>
+                        <bean id="copyBookBeanTransformId"
+                            method="convert" ref="copyBookMapper"/>
+                        <marshal id="beanIOBatchId" ref="beanioID"/>
+                        <convertBodyTo id="convertoBatchIdString" type="String"/>
+                        <to id="flatfileId" uri="file:output?fileExist=Append&amp;fileName=Debit_Mainframe_FlatFile_${date:now:yyyy.MM.dd}.txt"/>
+                        <bean id="setRecordId" method="setRecordId" ref="debitBatchSqlStatementProcessor"/>
+                        <to id="updateRecordId" uri="postgresql:{{sql.update.transaction}}"/>
+                        <doCatch id="_doCatch1">
+                            <exception>java.lang.Exception</exception>
+                            <handled>
+                                <constant>true</constant>
+                            </handled>
+                            <log id="_log3" loggingLevel="ERROR" message="Exception while debit transaction processing..${exception}"/>
+                        </doCatch>
+                    </doTry>
+                </split>
+            </loop>
+        </route>
+    </camelContext>
+</beans>

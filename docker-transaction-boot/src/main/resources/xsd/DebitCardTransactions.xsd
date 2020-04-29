@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+   <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+          <xs:element name="createTransactionRequest">
+               <xs:complexType>
+                     <xs:sequence>
+                           <xs:element name="merchantAuthentication">
+                                 <xs:complexType>
+                                       <xs:sequence>
+                                             <xs:element name="name" type="xs:string"></xs:element>
+                                             <xs:element name="transactionKey" type="xs:string"></xs:element>
+                                       </xs:sequence>
+                                 </xs:complexType>
+                           </xs:element>
+                           <xs:element name="refId" type="xs:int"></xs:element>
+                           <xs:element name="transactionRequest">
+                                 <xs:complexType>
+                                       <xs:sequence>
+                                             <xs:element name="transactionType" type="xs:string"></xs:element>
+                                             <xs:element name="amount" type="xs:int"></xs:element>
+                                             <xs:element name="payment">
+                                                   <xs:complexType>
+                                                         <xs:sequence>
+                                                               <xs:element name="bankAccount">
+                                                                     <xs:complexType>
+                                                                           <xs:sequence>
+                                                                                 <xs:element name="accountType" type="xs:string"></xs:element>
+                                                                                 <xs:element name="routingNumber" type="xs:int"></xs:element>
+                                                                                 <xs:element name="accountNumber" type="xs:int"></xs:element>
+                                                                                 <xs:element name="nameOnAccount" type="xs:string"></xs:element>
+                                                                           </xs:sequence>
+                                                                     </xs:complexType>
+                                                               </xs:element>
+                                                         </xs:sequence>
+                                                   </xs:complexType>
+                                             </xs:element>
+                                             <xs:element name="order">
+                                                   <xs:complexType>
+                                                         <xs:sequence>
+                                                               <xs:element name="invoiceNumber" type="xs:string"></xs:element>
+                                                               <xs:element name="description" type="xs:string"></xs:element>
+                                                         </xs:sequence>
+                                                   </xs:complexType>
+                                             </xs:element>
+                                             <xs:element name="lineItems">
+                                                   <xs:complexType>
+                                                         <xs:sequence>
+                                                               <xs:element name="lineItem">
+                                                                     <xs:complexType>
+                                                                           <xs:sequence>
+                                                                                 <xs:element name="itemId" type="xs:int"></xs:element>
+                                                                                 <xs:element name="name" type="xs:string"></xs:element>
+                                                                                 <xs:element name="description" type="xs:string"></xs:element>
+                                                                                 <xs:element name="quantity" type="xs:int"></xs:element>
+                                                                                 <xs:element name="unitPrice" type="xs:int"></xs:element>
+                                                                           </xs:sequence>
+                                                                     </xs:complexType>
+                                                               </xs:element>
+                                                         </xs:sequence>
+                                                   </xs:complexType>
+                                             </xs:element>
+                                             <xs:element name="tax">
+                                                   <xs:complexType>
+                                                         <xs:sequence>
+                                                               <xs:element name="amount" type="xs:double"></xs:element>
+                                                               <xs:element name="name" type="xs:string"></xs:element>
+                                                               <xs:element name="description" type="xs:string"></xs:element>
+                                                         </xs:sequence>
+                                                   </xs:complexType>
+                                             </xs:element>
+                                             <xs:element name="duty">
+                                                   <xs:complexType>
+                                                         <xs:sequence>
+                                                               <xs:element name="amount" type="xs:double"></xs:element>
+                                                               <xs:element name="name" type="xs:string"></xs:element>
+                                                               <xs:element name="description" type="xs:string"></xs:element>
+                                                         </xs:sequence>
+                                                   </xs:complexType>
+                                             </xs:element>
+                                             <xs:element name="shipping">
+                                                   <xs:complexType>
+                                                         <xs:sequence>
+                                                               <xs:element name="amount" type="xs:double"></xs:element>
+                                                               <xs:element name="name" type="xs:string"></xs:element>
+                                                               <xs:element name="description" type="xs:string"></xs:element>
+                                                         </xs:sequence>
+                                                   </xs:complexType>
+                                             </xs:element>
+                                             <xs:element name="poNumber" type="xs:int"></xs:element>
+                                             <xs:element name="billTo">
+                                                   <xs:complexType>
+                                                         <xs:sequence>
+                                                               <xs:element name="firstName" type="xs:string"></xs:element>
+                                                               <xs:element name="lastName" type="xs:string"></xs:element>
+                                                               <xs:element name="company" type="xs:string"></xs:element>
+                                                               <xs:element name="address" type="xs:string"></xs:element>
+                                                               <xs:element name="city" type="xs:string"></xs:element>
+                                                               <xs:element name="state" type="xs:string"></xs:element>
+                                                               <xs:element name="zip" type="xs:int"></xs:element>
+                                                               <xs:element name="country" type="xs:string"></xs:element>
+                                                         </xs:sequence>
+                                                   </xs:complexType>
+                                             </xs:element>
+                                             <xs:element name="shipTo">
+                                                   <xs:complexType>
+                                                         <xs:sequence>
+                                                               <xs:element name="firstName" type="xs:string"></xs:element>
+                                                               <xs:element name="lastName" type="xs:string"></xs:element>
+                                                               <xs:element name="company" type="xs:string"></xs:element>
+                                                               <xs:element name="address" type="xs:string"></xs:element>
+                                                               <xs:element name="city" type="xs:string"></xs:element>
+                                                               <xs:element name="state" type="xs:string"></xs:element>
+                                                               <xs:element name="zip" type="xs:int"></xs:element>
+                                                               <xs:element name="country" type="xs:string"></xs:element>
+                                                         </xs:sequence>
+                                                   </xs:complexType>
+                                             </xs:element>
+                                             <xs:element name="customerIP" type="xs:string"></xs:element>
+                                       </xs:sequence>
+                                 </xs:complexType>
+                           </xs:element>
+                     </xs:sequence>
+               </xs:complexType>
+         </xs:element>
+   </xs:schema>
