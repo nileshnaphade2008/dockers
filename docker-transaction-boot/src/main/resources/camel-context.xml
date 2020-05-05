@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:cxf="http://camel.apache.org/schema/cxf"
-    xmlns:jaxrs="http://cxf.apache.org/jaxrs"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd      http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd     http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd      http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
-    <cxf:rsServer address="${api.url}" id="restServerId">
+    xmlns:camel="http://camel.apache.org/schema/spring"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans.xsd      
+    http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+    <!-- <cxf:rsServer address="${api.url}" id="restServerId">
         <cxf:serviceBeans>
             <bean class="com.docker.RestResource"/>
         </cxf:serviceBeans>
@@ -16,7 +17,7 @@
         <cxf:providers>
             <bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
         </cxf:providers>
-    </cxf:rsServer>
+    </cxf:rsServer> -->
     <bean class="org.apache.camel.component.jms.JmsComponent" id="wmq">
         <property name="connectionFactory" ref="activemqConnectionFactory"/>
     </bean>
@@ -44,7 +45,7 @@
     <camelContext id="DEBImqTransaction-contextId" trace="true" xmlns="http://camel.apache.org/schema/spring">
         <propertyPlaceholder id="myPropertyPlaceholder">
             <propertiesLocation optional="false"
-                path="C:\Users\c5099077\eclipse-workspace\docker-transaction-boot\src\main\resources\application.properties" resolver="file"/>
+                path="E:\AWS\workspace\dockers\docker-transaction-boot\src\main\resources\application.properties" resolver="file"/>
         </propertyPlaceholder>
         <jmxAgent disabled="true" id="jmxAgent"/>
         <endpoint id="debitRequestQueue" uri="wmq:debitqueue"/>
@@ -56,9 +57,9 @@
         </dataFormats>
         <route id="DebitActivemQTransactionRouteId">
             <from id="mqFromConsumerID" uri="debitRequestQueue"/>
-            <setProperty id="_setProperty1" propertyName="ORIGINAL_REQUEST">
+            <setProperty propertyName="ORIGINAL_REQUEST">
                 <simple>${body}</simple>
-            </setProperty>
+           </setProperty>
             <to id="_to1" uri="file:backup?fileName=/${date:now:yyyyMMdd}/historyReq/Debit_Trns${date:now:yyyy.MM.dd_HH.mm.ss.SSSSS_z}.xml"/>
             <unmarshal id="_unmarshal1">
                 <custom ref="jaxb"/>
@@ -93,7 +94,7 @@
             </onException>
         </route>
         <route id="restRouteId">
-            <from id="batchConsumerId" uri="cxfrs:bean:restServerId?synchronous=false&amp;exchangePattern=InOnly"/>
+            <from id="batchConsumerId" uri="direct:dockerapi?synchronous=false&amp;exchangePattern=InOnly"/>
             <inOnly id="_to11" uri="seda:debitBatch"/>
         </route>
         <route id="schedularRouteId">
