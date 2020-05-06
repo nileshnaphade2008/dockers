@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:camel="http://camel.apache.org/schema/spring"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans 
-    http://www.springframework.org/schema/beans/spring-beans.xsd      
-    http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans      http://www.springframework.org/schema/beans/spring-beans.xsd           http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
     <!-- <cxf:rsServer address="${api.url}" id="restServerId">
         <cxf:serviceBeans>
             <bean class="com.docker.RestResource"/>
@@ -45,7 +43,7 @@
     <camelContext id="DEBImqTransaction-contextId" trace="true" xmlns="http://camel.apache.org/schema/spring">
         <propertyPlaceholder id="myPropertyPlaceholder">
             <propertiesLocation optional="false"
-                path="E:\AWS\workspace\dockers\docker-transaction-boot\src\main\resources\application.properties" resolver="file"/>
+                path="application.properties" resolver="classpath"/>
         </propertyPlaceholder>
         <jmxAgent disabled="true" id="jmxAgent"/>
         <endpoint id="debitRequestQueue" uri="wmq:debitqueue"/>
@@ -57,9 +55,9 @@
         </dataFormats>
         <route id="DebitActivemQTransactionRouteId">
             <from id="mqFromConsumerID" uri="debitRequestQueue"/>
-            <setProperty propertyName="ORIGINAL_REQUEST">
+            <setProperty id="_setProperty1" propertyName="ORIGINAL_REQUEST">
                 <simple>${body}</simple>
-           </setProperty>
+            </setProperty>
             <to id="_to1" uri="file:backup?fileName=/${date:now:yyyyMMdd}/historyReq/Debit_Trns${date:now:yyyy.MM.dd_HH.mm.ss.SSSSS_z}.xml"/>
             <unmarshal id="_unmarshal1">
                 <custom ref="jaxb"/>
@@ -72,7 +70,7 @@
             </transform>
             <to id="_to2" uri="postgresql:{{sql.transaction}}"/>
             <bean id="_bean2" method="setSubject" ref="emailProcessor"/>
-           <!--  <to id="_to5" uri="seda:sendEmail"/> -->
+            <!--  <to id="_to5" uri="seda:sendEmail"/> -->
             <onException id="_onException1">
                 <exception>java.lang.Exception</exception>
                 <log id="_log2" loggingLevel="ERROR" message="Exception.. ${exception}"/>
